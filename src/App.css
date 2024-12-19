@@ -6,5 +6,5 @@
 
 .app-title {
   color: var(--tg-theme-text-color);
-  margin: 0;
+  margin-top: 3rem;
 }
