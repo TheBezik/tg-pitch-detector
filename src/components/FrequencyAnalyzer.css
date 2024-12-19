@@ -1,0 +1,14 @@
+.frequency-analyzer-title {
+  color: var(--tg-theme-text-color);
+  margin: 0;
+}
+
+.frequency-analyzer-error {
+  color: var(--tg-theme-destructive-text-color);
+  margin: 0;
+}
+
+.frequency-analyzer-text {
+  color: var(--tg-theme-text-color);
+  margin: 0;
+}
