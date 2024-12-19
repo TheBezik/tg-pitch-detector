@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "type": "module",
   "author": "Vladyslav Beziazychenko",
-  "homepage": "https://tg-pitch-detector.github.io",
+  "homepage": "https://thebezik.github.io/tg-pitch-detector",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
