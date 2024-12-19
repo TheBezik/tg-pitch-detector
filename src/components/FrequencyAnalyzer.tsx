@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState, useEffect } from 'react'
 
 import './FrequencyAnalyzer.css'
 
@@ -7,55 +7,67 @@ const FrequencyAnalyzer = () => {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    let dataArray: Uint8Array
-    let requestAnimationFrameId: number
     let audioContext: AudioContext
+    let analyser: AnalyserNode
+    let dataArray: Float32Array
+    let source: MediaStreamAudioSourceNode
+    let rafId: number
+
     const startAudioProcessing = async () => {
       try {
-        // Request audio input from the user
+        // Request microphone access
         const stream = await navigator.mediaDevices.getUserMedia({
           audio: true
         })
+
+        // Initialize Web Audio API components
         audioContext = new AudioContext()
-        const analyser = audioContext.createAnalyser()
+        analyser = audioContext.createAnalyser()
         analyser.fftSize = 2048
 
         const bufferLength = analyser.frequencyBinCount
-        dataArray = new Uint8Array(bufferLength)
+        dataArray = new Float32Array(bufferLength)
 
-        const source = audioContext.createMediaStreamSource(stream)
+        source = audioContext.createMediaStreamSource(stream)
         source.connect(analyser)
 
         const detectFrequency = () => {
-          analyser.getByteFrequencyData(dataArray)
-          const max = Math.max(...dataArray)
-          const index = dataArray.indexOf(max)
-          const frequency = (index * audioContext.sampleRate) / analyser.fftSize
-          setFrequency(Math.round(frequency))
-          requestAnimationFrameId = requestAnimationFrame(detectFrequency)
+          analyser.getFloatFrequencyData(dataArray)
+
+          // Find the peak frequency
+          let maxIndex = 0
+          for (let i = 1; i < dataArray.length; i++) {
+            if (dataArray[i] > dataArray[maxIndex]) {
+              maxIndex = i
+            }
+          }
+
+          const nyquist = audioContext.sampleRate / 2
+          const frequencyValue = (maxIndex / bufferLength) * nyquist
+
+          setFrequency(Math.round(frequencyValue))
+          rafId = requestAnimationFrame(detectFrequency)
         }
 
         detectFrequency()
-      } catch (error) {
-        if (error instanceof Error) {
-          setError(`${error.message}`)
-        } else {
-          setError('An unknown error occurred')
-        }
+      } catch (err) {
+        setError('Microphone access denied or not supported.')
       }
     }
 
     startAudioProcessing()
 
     return () => {
-      if (requestAnimationFrameId) cancelAnimationFrame(requestAnimationFrameId)
+      if (rafId) cancelAnimationFrame(rafId)
       if (audioContext) audioContext.close()
     }
   }, [])
 
   return (
     <div>
-      <p className="frequency-analyzer-title">Micro frequency analyzer</p>
+      <h1 className="frequency-analyzer-title">
+        Microphone Frequency Analyzer
+      </h1>
       {error ? (
         <p className="frequency-analyzer-error">{error}</p>
       ) : (
